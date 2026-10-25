@@ -1,0 +1,6 @@
+{
+  "name": "PDF Fusion - Lokalne Narzędzia PDF",
+  "description": "Lokalne, w 100% prywatne narzędzie do łączenia plików PDF, konwersji obrazów JPG do PDF oraz optymalizacji dokumentów w przeglądarce.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
