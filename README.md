@@ -12,53 +12,53 @@
 
 ---
 
-## ✨ Główne funkcje (Key Features)
+## Główne funkcje (Key Features)
 
-- 🔒 **100% Prywatności i Działanie Offline**:
+- **100% Prywatności i Działanie Offline**:
   - Brak przesyłania plików na serwer.
   - Dokumenty nie opuszczają Twojego urządzenia.
   - Pełne bezpieczeństwo poufnych umów, dokumentacji medycznej i finansowej.
 
-- 📑 **Wspólna kolejka dla plików PDF oraz obrazów**:
+- **Wspólna kolejka dla plików PDF oraz obrazów**:
   - Łącz dokumenty PDF ze zdjęciami dokumentów, faktur czy wykresów (JPG, PNG, WebP) w jeden finalny plik PDF.
   - Zmieniaj kolejność elementów metodą góra/dół.
 
-- 🖼️ **Indywidualna konfiguracja arkuszy ze zdjęć**:
+- **Indywidualna konfiguracja arkuszy ze zdjęć**:
   - **Format strony**: A4 lub dopasowanie do wymiarów zdjęcia.
   - **Orientacja**: Pionowa, Pozioma lub Automatyczna (na podstawie proporcji grafiki).
   - **Marginesy**: Brak, Mały (20 pkt) lub Standardowy (40 pkt).
 
-- 🔄 **Obracanie i selekcja stron**:
+- **Obracanie i selekcja stron**:
   - Obracanie poszczególnych dokumentów lub zdjęć o 90° w prawo.
-  - Wybór zakresu stron dla plików PDF (np. `all`, `1-3`, `2, 4-6`).
+  - Wybór zakresu stron dla plików PDF (np. `wszystkie`, `1-3`, `2, 4-6`).
 
-- ⚡ **Opcjonalna kompresja i optymalizacja**:
+- **Opcjonalna kompresja i optymalizacja**:
   - Checkbox **„Kompresuj plik wynikowy”** z rozwijanym panelem parametrów.
   - Profile kompresji: **Mocna** (~40% jakości), **Zrównoważona** (~65% jakości) oraz **Lekka** (~85% jakości).
   - Płynny suwak jakości obrazów (20% – 95%).
   - Automatyczne usuwanie zbędnych metadanych i włączanie strumieni obiektów PDF (*Object Streams*).
 
-- 🔢 **Automatyczna numeracja stron**:
+- **Automatyczna numeracja stron**:
   - Opcjonalne stemplowanie numeracji w wygenerowanym dokumencie.
   - Formaty: `Strona X z Y`, `X / Y`, `Tylko numer`.
   - Pozycje: dół-środek, dół-prawo, góra-prawo.
 
-- 🌓 **Tryb ciemny / jasny (Dark Mode)**:
+- **Tryb ciemny / jasny (Dark Mode)**:
   - Przełącznik motywu w pasku nagłówka.
   - Automatyczne zapamiętywanie wyboru w `localStorage` oraz obsługa preferencji systemowych.
 
-- 🌐 **Wielojęzyczność (Multilingual)**:
+- **Wielojęzyczność (Multilingual)**:
   - Obsługa 5 języków: **Polski (PL)**, **English (EN)**, **Deutsch (DE)**, **Español (ES)**, **Français (FR)**.
   - Automatyczne dopasowanie do języka systemu operacyjnego/przeglądarki przy pierwszym uruchomieniu.
   - Zapamiętywanie wybranego języka w pamięci przeglądarki.
 
-- 👁️ **Podgląd i natychmiastowe pobieranie**:
+- **Podgląd i natychmiastowe pobieranie**:
   - Wbudowany podgląd wygenerowanego pliku PDF w oknie dialogowym.
   - Prezentacja liczby stron, rozmiaru i czasu generowania oraz procentu redukcji wagi.
 
 ---
 
-## 🛠️ Stos technologiczny (Tech Stack)
+## Stos technologiczny (Tech Stack)
 
 - **Framework**: [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
 - **Build Tool**: [Vite 8](https://vitejs.dev/)
@@ -69,7 +69,7 @@
 
 ---
 
-## 🚀 Uruchomienie lokalne (Getting Started)
+## Uruchomienie lokalne (Getting Started)
 
 ### Wymagania wstępne
 - [Node.js](https://nodejs.org/) (wersja 20 lub nowsza)
@@ -107,7 +107,7 @@
 
 ---
 
-## 🛡️ Prywatność i Bezpieczeństwo
+## Prywatność i Bezpieczeństwo
 
 Większość internetowych konwerterów PDF przesyła Twoje pliki na zewnętrzne serwery, gdzie są przetwarzane i tymczasowo przechowywane. 
 
@@ -118,6 +118,6 @@ Większość internetowych konwerterów PDF przesyła Twoje pliki na zewnętrzne
 
 ---
 
-## 📄 Licencja
+## Licencja
 
 Projekt udostępniany na licencji [MIT](LICENSE). Możesz go swobodnie używać, modyfikować i wdrażać zarówno do celów prywatnych, jak i komercyjnych.
