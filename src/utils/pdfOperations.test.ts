@@ -15,6 +15,11 @@ test('validatePageRange validates empty strings, valid ranges and catches errors
   assert.equal(v1.isValid, true);
   assert.deepEqual(v1.indices, [0, 1, 2, 4]);
 
+  // Preserves duplicate pages and exact input order e.g. 1-3,2-4,2
+  const vDup = validatePageRange('1-3,2-4,2', 4);
+  assert.equal(vDup.isValid, true);
+  assert.deepEqual(vDup.indices, [0, 1, 2, 1, 2, 3, 1]);
+
   // Out of range (exceeding document page count)
   const v2 = validatePageRange('1-10', 3);
   assert.equal(v2.isValid, false);
@@ -127,3 +132,41 @@ test('mergeUnifiedQueue applies compression options when enabled', async () => {
   assert.equal(res.pageCount, 2);
   assert.ok(res.pdfBytes.byteLength > 0);
 });
+
+test('mergeUnifiedQueue merges duplicate page ranges preserving order', async () => {
+  const pdfBytes = await generateTestPdf('Dokument 4 strony', 4);
+
+  const items: MergeQueueItem[] = [
+    {
+      id: 'item-dup',
+      type: 'pdf',
+      name: 'cztery_strony.pdf',
+      size: pdfBytes.byteLength,
+      buffer: pdfBytes.buffer as ArrayBuffer,
+      pageCount: 4,
+      pageRange: '1-3,2-4,2',
+      rotation: 0,
+      imagePageSize: 'a4',
+      imageOrientation: 'portrait',
+      imageMargin: 'small',
+    },
+  ];
+
+  const options: MergeOptions = {
+    outputFileName: 'zduplikowane.pdf',
+    addPageNumbers: false,
+    pageNumberPosition: 'bottom-center',
+    pageNumberFormat: 'strona-x-z-y',
+    compress: false,
+    compressionPreset: 'balanced',
+    compressionQuality: 65,
+    removeMetadata: true,
+    maxImageDimension: 1600,
+  };
+
+  const res = await mergeUnifiedQueue(items, options);
+  // 1-3 (3 pages) + 2-4 (3 pages) + 2 (1 page) = 7 pages
+  assert.equal(res.pageCount, 7);
+  assert.ok(res.pdfBytes.byteLength > 0);
+});
+

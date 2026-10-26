@@ -61,7 +61,7 @@ export function validatePageRange(rangeStr: string, totalPages: number): PageRan
     return { isValid: true, indices: Array.from({ length: totalPages }, (_, i) => i) };
   }
 
-  const resultIndices = new Set<number>();
+  const resultIndices: number[] = [];
 
   for (const part of parts) {
     if (part.includes('-')) {
@@ -80,7 +80,7 @@ export function validatePageRange(rangeStr: string, totalPages: number): PageRan
         return { isValid: false, errorType: 'out_of_range', indices: [] };
       }
       for (let p = start; p <= end; p++) {
-        resultIndices.add(p - 1);
+        resultIndices.push(p - 1);
       }
     } else {
       const trimmed = part.trim();
@@ -91,12 +91,11 @@ export function validatePageRange(rangeStr: string, totalPages: number): PageRan
       if (isNaN(single) || single < 1 || single > totalPages) {
         return { isValid: false, errorType: 'out_of_range', indices: [] };
       }
-      resultIndices.add(single - 1);
+      resultIndices.push(single - 1);
     }
   }
 
-  const sorted = Array.from(resultIndices).sort((a, b) => a - b);
-  return { isValid: true, indices: sorted };
+  return { isValid: true, indices: resultIndices };
 }
 
 /**
