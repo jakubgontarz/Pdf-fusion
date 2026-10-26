@@ -13,9 +13,14 @@ export function DropZone({ t, onFilesSelected, isProcessing = false }: DropZoneP
   const dragCounter = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const isFilesDrag = (e: React.DragEvent) => {
+    return e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files');
+  };
+
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!isFilesDrag(e)) return;
     dragCounter.current += 1;
     if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
       setIsDragOver(true);
@@ -25,8 +30,10 @@ export function DropZone({ t, onFilesSelected, isProcessing = false }: DropZoneP
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!isFilesDrag(e)) return;
     dragCounter.current -= 1;
-    if (dragCounter.current === 0) {
+    if (dragCounter.current <= 0) {
+      dragCounter.current = 0;
       setIsDragOver(false);
     }
   };
@@ -34,6 +41,11 @@ export function DropZone({ t, onFilesSelected, isProcessing = false }: DropZoneP
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!isFilesDrag(e)) {
+      e.dataTransfer.dropEffect = 'none';
+      return;
+    }
+    e.dataTransfer.dropEffect = 'copy';
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -41,6 +53,8 @@ export function DropZone({ t, onFilesSelected, isProcessing = false }: DropZoneP
     e.stopPropagation();
     setIsDragOver(false);
     dragCounter.current = 0;
+
+    if (!isFilesDrag(e)) return;
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       onFilesSelected(Array.from(e.dataTransfer.files));

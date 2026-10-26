@@ -48,10 +48,12 @@ export function MergeSettings({ t, options, onChange }: MergeSettingsProps) {
         <input
           id="output-filename"
           type="text"
+          draggable={false}
+          onDragStart={(e) => e.stopPropagation()}
           value={options.outputFileName}
           onChange={(e) => update({ outputFileName: e.target.value })}
           placeholder="scalony_dokument.pdf"
-          className="w-full px-3 py-2 text-xs sm:text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white rounded-lg focus:bg-white dark:focus:bg-neutral-900 focus:outline-hidden focus:ring-1 focus:ring-neutral-900 dark:focus:ring-white transition-colors"
+          className="w-full px-3 py-2 text-xs sm:text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white rounded-lg focus:bg-white dark:focus:bg-neutral-900 focus:outline-hidden focus:ring-1 focus:ring-neutral-900 dark:focus:ring-white transition-colors select-text cursor-text"
         />
       </div>
 
