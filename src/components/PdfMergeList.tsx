@@ -74,9 +74,9 @@ function PdfMergeListItem({
   onUpdateRange,
   onUpdateImageOption,
 }: PdfMergeListItemProps) {
-  // When the user interacts with the input (hovering, focusing, or selecting text),
-  // disable draggable on the container so browser initiates text selection instead of dragging the card.
-  const [isDragDisabled, setIsDragDisabled] = useState(false);
+  // Draggable is false by default so all inputs and text are natively selectable.
+  // It is only enabled when interacting with the drag handle or non-interactive card space.
+  const [isDraggable, setIsDraggable] = useState(false);
   const isImage = item.type === 'image';
 
   // Validate page range for PDF items
@@ -84,37 +84,41 @@ function PdfMergeListItem({
     ? validatePageRange(item.pageRange, item.pageCount)
     : { isValid: true, indices: [] };
 
-  const handleInputMouseLeave = (e: React.MouseEvent) => {
-    // If the mouse button is currently held down (user dragging to select text past input boundary),
-    // wait until mouse is released before re-enabling drag.
-    if (e.buttons !== 0) {
-      const handleWindowMouseUp = () => {
-        setIsDragDisabled(false);
-        window.removeEventListener('mouseup', handleWindowMouseUp);
-      };
-      window.addEventListener('mouseup', handleWindowMouseUp);
-      return;
+  const handleCardPointerDown = (e: React.PointerEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('input, textarea, select, button, a, [data-no-drag="true"]')) {
+      setIsDraggable(false);
+    } else {
+      setIsDraggable(true);
     }
-    setIsDragDisabled(false);
   };
 
   return (
     <div
       key={item.id}
-      draggable={!isDragDisabled}
+      draggable={isDraggable}
+      onPointerDown={handleCardPointerDown}
+      onPointerUp={() => {
+        if (!isDragging) setIsDraggable(false);
+      }}
       onDragStart={(e) => {
         const target = e.target as HTMLElement;
         if (target.closest('input, textarea, select, button, [data-no-drag="true"]')) {
           e.preventDefault();
-          e.stopPropagation();
           return;
         }
         onDragStart(e, index);
       }}
       onDragOver={(e) => onDragOver(e, index)}
       onDragLeave={(e) => onDragLeave(e, index)}
-      onDrop={(e) => onDrop(e, index)}
-      onDragEnd={onDragEnd}
+      onDrop={(e) => {
+        setIsDraggable(false);
+        onDrop(e, index);
+      }}
+      onDragEnd={() => {
+        setIsDraggable(false);
+        onDragEnd();
+      }}
       className={`bg-white dark:bg-neutral-900 rounded-xl border p-3 flex flex-col gap-2.5 shadow-2xs transition-all ${
         isDragging
           ? 'opacity-40 border-dashed border-neutral-400 dark:border-neutral-600'
@@ -130,8 +134,11 @@ function PdfMergeListItem({
           <div
             className="p-1 text-neutral-400 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-200 cursor-grab active:cursor-grabbing shrink-0"
             title={t.dragToReorder}
-            onMouseEnter={() => setIsDragDisabled(false)}
-            onMouseDown={() => setIsDragDisabled(false)}
+            onMouseEnter={() => setIsDraggable(true)}
+            onMouseLeave={() => {
+              if (!isDragging) setIsDraggable(false);
+            }}
+            onMouseDown={() => setIsDraggable(true)}
           >
             <GripVertical className="w-4 h-4" />
           </div>
@@ -152,11 +159,11 @@ function PdfMergeListItem({
             </div>
           )}
 
-          <div className="min-w-0">
-            <p className="text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white truncate" title={item.name}>
+          <div className="min-w-0 select-text">
+            <p className="text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white truncate select-text" title={item.name}>
               {item.name}
             </p>
-            <div className="flex items-center gap-2 text-2xs text-neutral-500 dark:text-neutral-400">
+            <div className="flex items-center gap-2 text-2xs text-neutral-500 dark:text-neutral-400 select-text">
               <span className="font-mono tabular-nums">
                 {formatPagesCount(item.pageCount, currentLang)}
               </span>
@@ -186,26 +193,11 @@ function PdfMergeListItem({
                 <input
                   id={`range-${item.id}`}
                   type="text"
-                  draggable={false}
                   data-no-drag="true"
                   value={item.pageRange}
                   onChange={(e) => onUpdateRange(item.id, e.target.value)}
-                  onFocus={() => setIsDragDisabled(true)}
-                  onBlur={() => setIsDragDisabled(false)}
-                  onMouseEnter={() => setIsDragDisabled(true)}
-                  onMouseLeave={handleInputMouseLeave}
-                  onPointerDown={(e) => {
-                    setIsDragDisabled(true);
-                    e.stopPropagation();
-                  }}
-                  onMouseDown={(e) => {
-                    setIsDragDisabled(true);
-                    e.stopPropagation();
-                  }}
-                  onDragStart={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
+                  onMouseEnter={() => setIsDraggable(false)}
+                  onFocus={() => setIsDraggable(false)}
                   placeholder={t.allPagesPlaceholder}
                   title={t.pages}
                   className={`w-20 sm:w-24 px-2 py-1 text-xs font-mono rounded-md text-center transition-colors focus:outline-hidden focus:ring-1 select-text cursor-text ${

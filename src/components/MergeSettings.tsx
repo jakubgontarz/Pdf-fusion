@@ -48,8 +48,6 @@ export function MergeSettings({ t, options, onChange }: MergeSettingsProps) {
         <input
           id="output-filename"
           type="text"
-          draggable={false}
-          onDragStart={(e) => e.stopPropagation()}
           value={options.outputFileName}
           onChange={(e) => update({ outputFileName: e.target.value })}
           placeholder="scalony_dokument.pdf"
