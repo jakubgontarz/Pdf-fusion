@@ -4,17 +4,46 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PDF Fusion - Lokalne Narzędzia PDF</title>
-    <link rel="icon" type="image/png" href="./src/pdf_fusion_icon.png" />
     <meta name="description" content="Lokalne, prywatne narzędzie do łączenia plików PDF, konwersji obrazów JPG do PDF oraz optymalizacji dokumentów w przeglądarce." />
     <meta property="og:title" content="PDF Fusion - Lokalne Narzędzia PDF" />
     <meta property="og:description" content="Lokalne, prywatne narzędzie do łączenia plików PDF, konwersji obrazów JPG do PDF oraz optymalizacji dokumentów w przeglądarce." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/png" href="/src/pdf_fusion_icon.png" />
+    <link rel="apple-touch-icon" href="/src/pdf_fusion_icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('pdf_fusion_theme');
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var isDark = saved === 'dark' || (!saved && prefersDark);
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.backgroundColor = '#0a0a0a';
+            document.documentElement.style.colorScheme = 'dark';
+          } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.style.backgroundColor = '#fafafa';
+            document.documentElement.style.colorScheme = 'light';
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <style>
+      html.dark, html.dark body {
+        background-color: #0a0a0a !important;
+        color-scheme: dark;
+      }
+      html:not(.dark), html:not(.dark) body {
+        background-color: #fafafa !important;
+        color-scheme: light;
+      }
+    </style>
   </head>
-  <body class="bg-neutral-50 text-neutral-900 antialiased font-sans selection:bg-neutral-900 selection:text-white">
+  <body class="bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 antialiased font-sans selection:bg-neutral-900 selection:text-white">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
