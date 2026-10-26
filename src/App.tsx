@@ -265,16 +265,16 @@ export default function App() {
         onToggleTheme={toggleTheme}
       />
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-8">
         {items.length === 0 ? (
           /* Empty state: Clean dropzone without fluff */
-          <div className="max-w-xl mx-auto py-8">
+          <div className="max-w-xl mx-auto py-6 sm:py-8">
             <DropZone t={t} onFilesSelected={handleFilesSelected} isProcessing={isProcessing} />
           </div>
         ) : (
           /* Workspace with wider settings column (7/5 split) */
           <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
               {/* Files queue (7 columns of 12) */}
               <div className="lg:col-span-7 space-y-4">
                 <PdfMergeList
@@ -295,7 +295,7 @@ export default function App() {
               </div>
 
               {/* Settings column (5 columns of 12 = wider and comfortable) */}
-              <div className="lg:col-span-5 space-y-4 sticky top-20">
+              <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-20">
                 <MergeSettings t={t} options={mergeOptions} onChange={setMergeOptions} />
 
                 {/* Validation warning if ranges are invalid */}

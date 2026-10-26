@@ -32,7 +32,7 @@ export function MergeSettings({ t, options, onChange }: MergeSettingsProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-5 sm:p-6 space-y-4 shadow-2xs transition-colors">
+    <div className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-6 space-y-4 shadow-2xs transition-colors">
       <div className="flex items-center gap-2 pb-2.5 border-b border-neutral-200 dark:border-neutral-800">
         <Sliders className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
         <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">
@@ -70,7 +70,7 @@ export function MergeSettings({ t, options, onChange }: MergeSettingsProps) {
         </label>
 
         {options.addPageNumbers && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 pl-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 mt-3 pl-2 sm:pl-6">
             <div>
               <span className="block text-2xs text-neutral-500 dark:text-neutral-400 mb-1">
                 {t.format}
@@ -123,18 +123,18 @@ export function MergeSettings({ t, options, onChange }: MergeSettingsProps) {
 
         {/* Expanded Compression Options */}
         {options.compress && (
-          <div className="mt-3.5 pl-6 space-y-4 border-l-2 border-neutral-200 dark:border-neutral-700 ml-2 py-1">
+          <div className="mt-3.5 pl-3 sm:pl-6 space-y-4 border-l-2 border-neutral-200 dark:border-neutral-700 ml-1 sm:ml-2 py-1">
             {/* Presets with generous width and padding */}
             <div>
               <span className="block text-2xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider mb-2">
                 {t.compressionLevel}
               </span>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 <button
                   type="button"
                   onClick={() => handlePresetChange('strong')}
                   title={t.presetStrong}
-                  className={`px-2.5 py-2 text-xs rounded-lg border text-center transition-all cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis ${
+                  className={`px-1 sm:px-2.5 py-2 text-2xs sm:text-xs rounded-lg border text-center transition-all cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis ${
                     options.compressionPreset === 'strong'
                       ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 border-neutral-900 dark:border-white font-semibold shadow-xs'
                       : 'bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700'
@@ -146,7 +146,7 @@ export function MergeSettings({ t, options, onChange }: MergeSettingsProps) {
                   type="button"
                   onClick={() => handlePresetChange('balanced')}
                   title={t.presetBalanced}
-                  className={`px-2.5 py-2 text-xs rounded-lg border text-center transition-all cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis ${
+                  className={`px-1 sm:px-2.5 py-2 text-2xs sm:text-xs rounded-lg border text-center transition-all cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis ${
                     options.compressionPreset === 'balanced'
                       ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 border-neutral-900 dark:border-white font-semibold shadow-xs'
                       : 'bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700'
@@ -158,7 +158,7 @@ export function MergeSettings({ t, options, onChange }: MergeSettingsProps) {
                   type="button"
                   onClick={() => handlePresetChange('light')}
                   title={t.presetLight}
-                  className={`px-2.5 py-2 text-xs rounded-lg border text-center transition-all cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis ${
+                  className={`px-1 sm:px-2.5 py-2 text-2xs sm:text-xs rounded-lg border text-center transition-all cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis ${
                     options.compressionPreset === 'light'
                       ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 border-neutral-900 dark:border-white font-semibold shadow-xs'
                       : 'bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700'

@@ -107,7 +107,7 @@ export function PdfResultModal({
         </div>
 
         {/* PDF Preview Frame */}
-        <div className="flex-1 min-h-[360px] sm:min-h-[460px] p-3 bg-neutral-100 dark:bg-neutral-950 flex flex-col">
+        <div className="flex-1 min-h-[260px] sm:min-h-[460px] p-2.5 sm:p-3 bg-neutral-100 dark:bg-neutral-950 flex flex-col">
           {blobUrl ? (
             <iframe
               src={`${blobUrl}#toolbar=0&navpanes=0`}

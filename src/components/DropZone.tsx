@@ -75,7 +75,7 @@ export function DropZone({ t, onFilesSelected, isProcessing = false }: DropZoneP
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       onClick={() => inputRef.current?.click()}
-      className={`rounded-xl border-2 border-dashed transition-all p-8 sm:p-10 text-center cursor-pointer ${
+      className={`rounded-xl border-2 border-dashed transition-all p-6 sm:p-10 text-center cursor-pointer ${
         isDragOver
           ? 'border-neutral-900 dark:border-white bg-neutral-100 dark:bg-neutral-800'
           : 'border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600 bg-white dark:bg-neutral-900'

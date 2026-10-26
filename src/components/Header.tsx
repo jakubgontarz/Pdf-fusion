@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import appIcon from '../pdf_fusion_icon.png';
-import { ShieldCheck, Moon, Sun, Globe, Check } from 'lucide-react';
+import { Moon, Sun, Globe, Check, Info } from 'lucide-react';
 import { type Language, availableLanguages, type Translations } from '../i18n/translations';
+import { AboutModal } from './AboutModal';
 
 interface HeaderProps {
   t: Translations;
@@ -19,6 +20,7 @@ export function Header({
   onToggleTheme,
 }: HeaderProps) {
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
@@ -36,7 +38,7 @@ export function Header({
     <header className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 sticky top-0 z-30 transition-colors">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
         {/* Brand */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <img
             src={appIcon}
             alt="PDF Fusion"
@@ -45,15 +47,19 @@ export function Header({
           <span className="text-base font-bold tracking-tight text-neutral-900 dark:text-white">
             {t.appName}
           </span>
+          <button
+            type="button"
+            onClick={() => setIsAboutOpen(true)}
+            aria-label={t.aboutApp}
+            title={t.aboutApp}
+            className="w-7 h-7 rounded-full flex items-center justify-center text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer ml-0.5"
+          >
+            <Info className="w-4.5 h-4.5" />
+          </button>
         </div>
 
-        {/* Right zone: Local badge, Language picker, Theme toggle */}
+        {/* Right zone: Language picker, Theme toggle */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Privacy badge */}
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-neutral-100 dark:bg-neutral-800 text-xs text-neutral-600 dark:text-neutral-300">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>{t.localBadge}</span>
-          </div>
 
           {/* Language selector dropdown */}
           <div className="relative" ref={menuRef}>
@@ -110,6 +116,12 @@ export function Header({
           </button>
         </div>
       </div>
+
+      <AboutModal
+        t={t}
+        isOpen={isAboutOpen}
+        onClose={() => setIsAboutOpen(false)}
+      />
     </header>
   );
 }

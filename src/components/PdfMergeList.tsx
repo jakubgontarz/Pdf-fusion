@@ -127,12 +127,12 @@ function PdfMergeListItem({
           : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700'
       }`}
     >
-      <div className="flex items-center justify-between gap-3">
-        {/* Left: Drag Handle, Index, Icon/Thumb & Details */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3">
+        {/* Top/Left: Drag Handle, Index, Icon/Thumb & Details */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           {/* Drag Handle */}
           <div
-            className="p-1 text-neutral-400 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-200 cursor-grab active:cursor-grabbing shrink-0"
+            className="p-1 sm:p-1 text-neutral-400 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-200 cursor-grab active:cursor-grabbing shrink-0"
             title={t.dragToReorder}
             onMouseEnter={() => setIsDraggable(true)}
             onMouseLeave={() => {
@@ -143,7 +143,7 @@ function PdfMergeListItem({
             <GripVertical className="w-4 h-4" />
           </div>
 
-          <span className="w-5 text-center text-xs font-mono text-neutral-400 select-none hidden sm:inline">
+          <span className="w-5 text-center text-xs font-mono font-medium text-neutral-400 select-none shrink-0">
             {String(index + 1).padStart(2, '0')}
           </span>
 
@@ -159,11 +159,11 @@ function PdfMergeListItem({
             </div>
           )}
 
-          <div className="min-w-0 select-text">
+          <div className="min-w-0 flex-1 select-text">
             <p className="text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white truncate select-text" title={item.name}>
               {item.name}
             </p>
-            <div className="flex items-center gap-2 text-2xs text-neutral-500 dark:text-neutral-400 select-text">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-2xs text-neutral-500 dark:text-neutral-400 select-text flex-wrap">
               <span className="font-mono tabular-nums">
                 {formatPagesCount(item.pageCount, currentLang)}
               </span>
@@ -172,7 +172,7 @@ function PdfMergeListItem({
               {item.rotation !== 0 && (
                 <>
                   <span aria-hidden="true">·</span>
-                  <span className="text-amber-600 dark:text-amber-400 font-mono">
+                  <span className="text-amber-600 dark:text-amber-400 font-mono font-medium">
                     {t.rotationLabel} {item.rotation}°
                   </span>
                 </>
@@ -181,13 +181,13 @@ function PdfMergeListItem({
           </div>
         </div>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Bottom/Right: Controls (Range input, rotate, up/down, delete) */}
+        <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-neutral-100 dark:border-neutral-800/80">
           {/* For PDF: Page range input with validation */}
-          {!isImage && (
-            <div className="flex flex-col items-end gap-1">
+          {!isImage ? (
+            <div className="flex flex-col items-start sm:items-end gap-1 min-w-0">
               <div className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
-                <label htmlFor={`range-${item.id}`} className="hidden md:inline select-none">
+                <label htmlFor={`range-${item.id}`} className="text-2xs sm:text-xs select-none shrink-0">
                   {t.pages}
                 </label>
                 <input
@@ -200,7 +200,7 @@ function PdfMergeListItem({
                   onFocus={() => setIsDraggable(false)}
                   placeholder={t.allPagesPlaceholder}
                   title={t.pages}
-                  className={`w-20 sm:w-24 px-2 py-1 text-xs font-mono rounded-md text-center transition-colors focus:outline-hidden focus:ring-1 select-text cursor-text ${
+                  className={`w-24 sm:w-24 px-2 py-1 text-xs font-mono rounded-md text-center transition-colors focus:outline-hidden focus:ring-1 select-text cursor-text ${
                     !rangeValidation.isValid
                       ? 'border-red-500 dark:border-red-400 bg-red-50/60 dark:bg-red-950/30 text-red-900 dark:text-red-200 focus:ring-red-500'
                       : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:bg-white dark:focus:bg-neutral-900 focus:ring-neutral-900 dark:focus:ring-white border'
@@ -212,7 +212,7 @@ function PdfMergeListItem({
               {!rangeValidation.isValid && (
                 <div className="flex items-center gap-1 text-3xs font-medium text-red-600 dark:text-red-400 animate-in fade-in select-none">
                   <AlertCircle className="w-3 h-3 shrink-0" />
-                  <span>
+                  <span className="truncate max-w-[170px] sm:max-w-none">
                     {rangeValidation.errorType === 'out_of_range'
                       ? t.rangeErrorOutOfRange.replace('{max}', String(item.pageCount))
                       : t.rangeErrorFormat}
@@ -220,58 +220,65 @@ function PdfMergeListItem({
                 </div>
               )}
             </div>
+          ) : (
+            <div className="text-2xs font-mono font-medium px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 select-none">
+              IMG
+            </div>
           )}
 
-          {/* Rotate button */}
-          <button
-            type="button"
-            onClick={() => onRotate(item.id)}
-            onMouseDown={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-            title={`${t.rotate} (${item.rotation}°)`}
-            className="p-1.5 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-md transition-colors cursor-pointer"
-            aria-label={`${t.rotate} ${item.name}`}
-          >
-            <RotateCw className="w-3.5 h-3.5" />
-          </button>
-
-          {/* Move Up / Down */}
-          <div className="flex items-center bg-neutral-100 dark:bg-neutral-800 rounded-md p-0.5">
+          {/* Action buttons group: Rotate, Reorder, Delete */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Rotate button */}
             <button
               type="button"
-              onClick={() => onMoveUp(index)}
+              onClick={() => onRotate(item.id)}
               onMouseDown={(e) => e.stopPropagation()}
               onPointerDown={(e) => e.stopPropagation()}
-              disabled={isFirst}
-              className="p-1 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white disabled:opacity-30 rounded cursor-pointer"
-              aria-label={`${t.moveUp} ${item.name}`}
+              title={`${t.rotate} (${item.rotation}°)`}
+              className="p-1.5 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-md transition-colors cursor-pointer"
+              aria-label={`${t.rotate} ${item.name}`}
             >
-              <ArrowUp className="w-3 h-3" />
+              <RotateCw className="w-3.5 h-3.5" />
             </button>
+
+            {/* Move Up / Down */}
+            <div className="flex items-center bg-neutral-100 dark:bg-neutral-800 rounded-md p-0.5">
+              <button
+                type="button"
+                onClick={() => onMoveUp(index)}
+                onMouseDown={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+                disabled={isFirst}
+                className="p-1 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white disabled:opacity-30 rounded cursor-pointer"
+                aria-label={`${t.moveUp} ${item.name}`}
+              >
+                <ArrowUp className="w-3 h-3" />
+              </button>
+              <button
+                type="button"
+                onClick={() => onMoveDown(index)}
+                onMouseDown={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+                disabled={isLast}
+                className="p-1 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white disabled:opacity-30 rounded cursor-pointer"
+                aria-label={`${t.moveDown} ${item.name}`}
+              >
+                <ArrowDown className="w-3 h-3" />
+              </button>
+            </div>
+
+            {/* Delete */}
             <button
               type="button"
-              onClick={() => onMoveDown(index)}
+              onClick={() => onRemove(item.id)}
               onMouseDown={(e) => e.stopPropagation()}
               onPointerDown={(e) => e.stopPropagation()}
-              disabled={isLast}
-              className="p-1 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white disabled:opacity-30 rounded cursor-pointer"
-              aria-label={`${t.moveDown} ${item.name}`}
+              className="p-1.5 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors cursor-pointer"
+              aria-label={`${t.remove} ${item.name}`}
             >
-              <ArrowDown className="w-3 h-3" />
+              <Trash2 className="w-3.5 h-3.5" />
             </button>
           </div>
-
-          {/* Delete */}
-          <button
-            type="button"
-            onClick={() => onRemove(item.id)}
-            onMouseDown={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-            className="p-1.5 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors cursor-pointer"
-            aria-label={`${t.remove} ${item.name}`}
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
         </div>
       </div>
 
@@ -281,16 +288,16 @@ function PdfMergeListItem({
           data-no-drag="true"
           onMouseDown={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
-          className="pl-6 sm:pl-8 pt-2 border-t border-neutral-100 dark:border-neutral-800 flex flex-wrap items-center gap-3 text-xs text-neutral-600 dark:text-neutral-300"
+          className="pt-2 sm:pt-2.5 sm:pl-9 border-t border-neutral-100 dark:border-neutral-800 flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-neutral-600 dark:text-neutral-300"
         >
-          <div className="flex items-center gap-1.5">
-            <span className="text-neutral-400">{t.imageFormat}</span>
+          <div className="flex items-center gap-1.5 min-w-[120px] flex-1 sm:flex-initial">
+            <span className="text-2xs sm:text-xs text-neutral-400 shrink-0">{t.imageFormat}</span>
             <select
               value={item.imagePageSize}
               onChange={(e) =>
                 onUpdateImageOption(item.id, { imagePageSize: e.target.value as any })
               }
-              className="px-2 py-0.5 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden"
+              className="w-full sm:w-auto px-2 py-1 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden"
             >
               <option value="a4">{t.imageFormatA4}</option>
               <option value="fit">{t.imageFormatFit}</option>
@@ -299,14 +306,14 @@ function PdfMergeListItem({
 
           {item.imagePageSize !== 'fit' && (
             <>
-              <div className="flex items-center gap-1.5">
-                <span className="text-neutral-400">{t.orientation}</span>
+              <div className="flex items-center gap-1.5 min-w-[120px] flex-1 sm:flex-initial">
+                <span className="text-2xs sm:text-xs text-neutral-400 shrink-0">{t.orientation}</span>
                 <select
                   value={item.imageOrientation}
                   onChange={(e) =>
                     onUpdateImageOption(item.id, { imageOrientation: e.target.value as any })
                   }
-                  className="px-2 py-0.5 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden"
+                  className="w-full sm:w-auto px-2 py-1 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden"
                 >
                   <option value="portrait">{t.orientationPortrait}</option>
                   <option value="landscape">{t.orientationLandscape}</option>
@@ -314,14 +321,14 @@ function PdfMergeListItem({
                 </select>
               </div>
 
-              <div className="flex items-center gap-1.5">
-                <span className="text-neutral-400">{t.margin}</span>
+              <div className="flex items-center gap-1.5 min-w-[120px] flex-1 sm:flex-initial">
+                <span className="text-2xs sm:text-xs text-neutral-400 shrink-0">{t.margin}</span>
                 <select
                   value={item.imageMargin}
                   onChange={(e) =>
                     onUpdateImageOption(item.id, { imageMargin: e.target.value as any })
                   }
-                  className="px-2 py-0.5 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden"
+                  className="w-full sm:w-auto px-2 py-1 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden"
                 >
                   <option value="none">{t.marginNone}</option>
                   <option value="small">{t.marginSmall}</option>
@@ -407,8 +414,8 @@ export function PdfMergeList({
   return (
     <div className="space-y-3">
       {/* List header info */}
-      <div className="flex items-center justify-between pb-1.5 border-b border-neutral-200 dark:border-neutral-800">
-        <div className="flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-400">
+      <div className="flex items-center justify-between pb-1.5 border-b border-neutral-200 dark:border-neutral-800 gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-neutral-600 dark:text-neutral-400 flex-wrap min-w-0">
           <span className="font-semibold text-neutral-900 dark:text-white">
             {formatFilesCount(items.length, currentLang)}
           </span>
@@ -423,7 +430,7 @@ export function PdfMergeList({
         <button
           type="button"
           onClick={onClearAll}
-          className="text-xs text-neutral-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer"
+          className="text-xs text-neutral-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer shrink-0"
         >
           {t.clearList}
         </button>
