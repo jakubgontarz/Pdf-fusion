@@ -1,8 +1,11 @@
-import { ArrowUp, ArrowDown, RotateCw, Trash2, FileText, Image as ImageIcon, SlidersHorizontal } from 'lucide-react';
+import { ArrowUp, ArrowDown, RotateCw, Trash2, FileText } from 'lucide-react';
 import type { MergeQueueItem } from '../types';
 import { formatBytes } from '../utils/pdfOperations';
+import { type Translations, type Language, formatFilesCount, formatPagesCount } from '../i18n/translations';
 
 interface PdfMergeListProps {
+  t: Translations;
+  currentLang: Language;
   items: MergeQueueItem[];
   onMoveUp: (index: number) => void;
   onMoveDown: (index: number) => void;
@@ -14,6 +17,8 @@ interface PdfMergeListProps {
 }
 
 export function PdfMergeList({
+  t,
+  currentLang,
   items,
   onMoveUp,
   onMoveDown,
@@ -29,14 +34,14 @@ export function PdfMergeList({
   return (
     <div className="space-y-3">
       {/* List header info */}
-      <div className="flex items-center justify-between pb-1.5 border-b border-neutral-200">
-        <div className="flex items-center gap-2 text-xs text-neutral-600">
-          <span className="font-semibold text-neutral-900">
-            {items.length} {items.length === 1 ? 'plik' : items.length < 5 ? 'pliki' : 'plików'}
+      <div className="flex items-center justify-between pb-1.5 border-b border-neutral-200 dark:border-neutral-800">
+        <div className="flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-400">
+          <span className="font-semibold text-neutral-900 dark:text-white">
+            {formatFilesCount(items.length, currentLang)}
           </span>
           <span aria-hidden="true">·</span>
           <span className="font-mono tabular-nums">
-            {totalPages} {totalPages === 1 ? 'strona' : 'stron'}
+            {formatPagesCount(totalPages, currentLang)}
           </span>
           <span aria-hidden="true">·</span>
           <span className="font-mono tabular-nums">{formatBytes(totalBytes)}</span>
@@ -45,9 +50,9 @@ export function PdfMergeList({
         <button
           type="button"
           onClick={onClearAll}
-          className="text-xs text-neutral-500 hover:text-red-600 transition-colors cursor-pointer"
+          className="text-xs text-neutral-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer"
         >
-          Wyczyść listę
+          {t.clearList}
         </button>
       </div>
 
@@ -61,7 +66,7 @@ export function PdfMergeList({
           return (
             <div
               key={item.id}
-              className="bg-white rounded-xl border border-neutral-200 p-3 flex flex-col gap-2.5 shadow-2xs hover:border-neutral-300 transition-colors"
+              className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-3 flex flex-col gap-2.5 shadow-2xs hover:border-neutral-300 dark:hover:border-neutral-700 transition-colors"
             >
               <div className="flex items-center justify-between gap-3">
                 {/* Left: Index, Icon/Thumb & Details */}
@@ -74,28 +79,30 @@ export function PdfMergeList({
                     <img
                       src={item.dataUrl}
                       alt={item.name}
-                      className="w-9 h-9 rounded-md object-cover border border-neutral-200 bg-neutral-100 shrink-0"
+                      className="w-9 h-9 rounded-md object-cover border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 shrink-0"
                     />
                   ) : (
-                    <div className="w-9 h-9 rounded-md bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-700 shrink-0">
+                    <div className="w-9 h-9 rounded-md bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-neutral-700 dark:text-neutral-300 shrink-0">
                       <FileText className="w-4 h-4" />
                     </div>
                   )}
 
                   <div className="min-w-0">
-                    <p className="text-xs sm:text-sm font-semibold text-neutral-900 truncate" title={item.name}>
+                    <p className="text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white truncate" title={item.name}>
                       {item.name}
                     </p>
-                    <div className="flex items-center gap-2 text-2xs text-neutral-500">
+                    <div className="flex items-center gap-2 text-2xs text-neutral-500 dark:text-neutral-400">
                       <span className="font-mono tabular-nums">
-                        {item.pageCount} {item.pageCount === 1 ? 'strona' : 'stron'}
+                        {formatPagesCount(item.pageCount, currentLang)}
                       </span>
                       <span aria-hidden="true">·</span>
                       <span className="font-mono tabular-nums">{formatBytes(item.size)}</span>
                       {item.rotation !== 0 && (
                         <>
                           <span aria-hidden="true">·</span>
-                          <span className="text-amber-700 font-mono">Obrót: {item.rotation}°</span>
+                          <span className="text-amber-600 dark:text-amber-400 font-mono">
+                            {t.rotationLabel} {item.rotation}°
+                          </span>
                         </>
                       )}
                     </div>
@@ -106,18 +113,18 @@ export function PdfMergeList({
                 <div className="flex items-center gap-2 shrink-0">
                   {/* For PDF: Page range */}
                   {!isImage && (
-                    <div className="flex items-center gap-1 text-xs text-neutral-500">
+                    <div className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
                       <label htmlFor={`range-${item.id}`} className="hidden sm:inline">
-                        Strony:
+                        {t.pages}
                       </label>
                       <input
                         id={`range-${item.id}`}
                         type="text"
                         value={item.pageRange}
                         onChange={(e) => onUpdateRange(item.id, e.target.value)}
-                        placeholder="all"
-                        title="Zakres stron, np. all, 1-3 lub 1, 4"
-                        className="w-16 sm:w-20 px-1.5 py-1 text-xs font-mono bg-neutral-50 border border-neutral-200 rounded-md focus:bg-white focus:outline-hidden focus:ring-1 focus:ring-neutral-900 text-center"
+                        placeholder={t.pagesPlaceholder}
+                        title={t.pages}
+                        className="w-16 sm:w-20 px-1.5 py-1 text-xs font-mono bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white rounded-md focus:bg-white dark:focus:bg-neutral-900 focus:outline-hidden focus:ring-1 focus:ring-neutral-900 dark:focus:ring-white text-center"
                       />
                     </div>
                   )}
@@ -126,21 +133,21 @@ export function PdfMergeList({
                   <button
                     type="button"
                     onClick={() => onRotate(item.id)}
-                    title={`Obróć o 90° (${item.rotation}°)`}
-                    className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition-colors cursor-pointer"
-                    aria-label={`Obróć ${item.name}`}
+                    title={`${t.rotate} (${item.rotation}°)`}
+                    className="p-1.5 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-md transition-colors cursor-pointer"
+                    aria-label={`${t.rotate} ${item.name}`}
                   >
                     <RotateCw className="w-3.5 h-3.5" />
                   </button>
 
                   {/* Move Up / Down */}
-                  <div className="flex items-center bg-neutral-100 rounded-md p-0.5">
+                  <div className="flex items-center bg-neutral-100 dark:bg-neutral-800 rounded-md p-0.5">
                     <button
                       type="button"
                       onClick={() => onMoveUp(index)}
                       disabled={isFirst}
-                      className="p-1 text-neutral-600 hover:text-neutral-900 disabled:opacity-30 rounded cursor-pointer"
-                      aria-label="W górę"
+                      className="p-1 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white disabled:opacity-30 rounded cursor-pointer"
+                      aria-label={`${t.moveUp} ${item.name}`}
                     >
                       <ArrowUp className="w-3 h-3" />
                     </button>
@@ -148,8 +155,8 @@ export function PdfMergeList({
                       type="button"
                       onClick={() => onMoveDown(index)}
                       disabled={isLast}
-                      className="p-1 text-neutral-600 hover:text-neutral-900 disabled:opacity-30 rounded cursor-pointer"
-                      aria-label="W dół"
+                      className="p-1 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white disabled:opacity-30 rounded cursor-pointer"
+                      aria-label={`${t.moveDown} ${item.name}`}
                     >
                       <ArrowDown className="w-3 h-3" />
                     </button>
@@ -159,8 +166,8 @@ export function PdfMergeList({
                   <button
                     type="button"
                     onClick={() => onRemove(item.id)}
-                    className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                    aria-label={`Usuń ${item.name}`}
+                    className="p-1.5 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors cursor-pointer"
+                    aria-label={`${t.remove} ${item.name}`}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -169,50 +176,50 @@ export function PdfMergeList({
 
               {/* Image specific layout controls */}
               {isImage && (
-                <div className="pl-8 pt-2 border-t border-neutral-100 flex flex-wrap items-center gap-3 text-xs text-neutral-600">
+                <div className="pl-8 pt-2 border-t border-neutral-100 dark:border-neutral-800 flex flex-wrap items-center gap-3 text-xs text-neutral-600 dark:text-neutral-300">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-neutral-400">Format:</span>
+                    <span className="text-neutral-400">{t.imageFormat}</span>
                     <select
                       value={item.imagePageSize}
                       onChange={(e) =>
                         onUpdateImageOption(item.id, { imagePageSize: e.target.value as any })
                       }
-                      className="px-2 py-0.5 text-xs bg-neutral-50 border border-neutral-200 rounded-md focus:outline-hidden"
+                      className="px-2 py-0.5 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden"
                     >
-                      <option value="a4">Strona A4</option>
-                      <option value="fit">Dopasuj do zdjęcia</option>
+                      <option value="a4">{t.imageFormatA4}</option>
+                      <option value="fit">{t.imageFormatFit}</option>
                     </select>
                   </div>
 
                   {item.imagePageSize !== 'fit' && (
                     <>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-neutral-400">Orientacja:</span>
+                        <span className="text-neutral-400">{t.orientation}</span>
                         <select
                           value={item.imageOrientation}
                           onChange={(e) =>
                             onUpdateImageOption(item.id, { imageOrientation: e.target.value as any })
                           }
-                          className="px-2 py-0.5 text-xs bg-neutral-50 border border-neutral-200 rounded-md focus:outline-hidden"
+                          className="px-2 py-0.5 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden"
                         >
-                          <option value="portrait">Pionowa</option>
-                          <option value="landscape">Pozioma</option>
-                          <option value="auto">Auto</option>
+                          <option value="portrait">{t.orientationPortrait}</option>
+                          <option value="landscape">{t.orientationLandscape}</option>
+                          <option value="auto">{t.orientationAuto}</option>
                         </select>
                       </div>
 
                       <div className="flex items-center gap-1.5">
-                        <span className="text-neutral-400">Margines:</span>
+                        <span className="text-neutral-400">{t.margin}</span>
                         <select
                           value={item.imageMargin}
                           onChange={(e) =>
                             onUpdateImageOption(item.id, { imageMargin: e.target.value as any })
                           }
-                          className="px-2 py-0.5 text-xs bg-neutral-50 border border-neutral-200 rounded-md focus:outline-hidden"
+                          className="px-2 py-0.5 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden"
                         >
-                          <option value="none">Brak</option>
-                          <option value="small">Mały</option>
-                          <option value="normal">Standardowy</option>
+                          <option value="none">{t.marginNone}</option>
+                          <option value="small">{t.marginSmall}</option>
+                          <option value="normal">{t.marginNormal}</option>
                         </select>
                       </div>
                     </>

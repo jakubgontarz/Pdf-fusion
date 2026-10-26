@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PDFDocument } from 'pdf-lib';
 import type { MergeQueueItem, MergeOptions } from './types';
 import { mergeUnifiedQueue } from './utils/pdfOperations';
@@ -13,8 +13,68 @@ import { PdfMergeList } from './components/PdfMergeList';
 import { MergeSettings } from './components/MergeSettings';
 import { PdfResultModal } from './components/PdfResultModal';
 import { ArrowRight, Layers } from 'lucide-react';
+import {
+  type Language,
+  translations,
+  detectDefaultLanguage,
+} from './i18n/translations';
 
 export default function App() {
+  // Theme state with localStorage & system preference
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('pdf_fusion_theme');
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        return savedTheme;
+      }
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
+    }
+    return 'light';
+  });
+
+  // Language state with localStorage & navigator language detection
+  const [language, setLanguage] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const savedLang = localStorage.getItem('pdf_fusion_lang');
+      if (savedLang && ['pl', 'en', 'de', 'es', 'fr'].includes(savedLang)) {
+        return savedLang as Language;
+      }
+      return detectDefaultLanguage();
+    }
+    return 'pl';
+  });
+
+  const t = translations[language];
+
+  // Apply theme class to documentElement and persist
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    try {
+      localStorage.setItem('pdf_fusion_theme', theme);
+    } catch {
+      // localStorage may fail in restricted environments
+    }
+  }, [theme]);
+
+  // Persist language
+  useEffect(() => {
+    try {
+      localStorage.setItem('pdf_fusion_lang', language);
+    } catch {
+      // ignore
+    }
+  }, [language]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
   const [items, setItems] = useState<MergeQueueItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [mergeOptions, setMergeOptions] = useState<MergeOptions>({
@@ -176,14 +236,20 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col text-neutral-900 font-sans">
-      <Header />
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 flex flex-col font-sans transition-colors">
+      <Header
+        t={t}
+        currentLang={language}
+        onLanguageChange={setLanguage}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {items.length === 0 ? (
           /* Empty state: Clean dropzone without fluff */
           <div className="max-w-xl mx-auto py-8">
-            <DropZone onFilesSelected={handleFilesSelected} isProcessing={isProcessing} />
+            <DropZone t={t} onFilesSelected={handleFilesSelected} isProcessing={isProcessing} />
           </div>
         ) : (
           /* Workspace with files and settings */
@@ -192,6 +258,8 @@ export default function App() {
               {/* Files queue (2 columns) */}
               <div className="lg:col-span-2 space-y-4">
                 <PdfMergeList
+                  t={t}
+                  currentLang={language}
                   items={items}
                   onMoveUp={handleMoveUp}
                   onMoveDown={handleMoveDown}
@@ -202,21 +270,21 @@ export default function App() {
                   onClearAll={handleClearAll}
                 />
 
-                <DropZone onFilesSelected={handleFilesSelected} isProcessing={isProcessing} />
+                <DropZone t={t} onFilesSelected={handleFilesSelected} isProcessing={isProcessing} />
               </div>
 
               {/* Settings column */}
               <div className="space-y-4">
-                <MergeSettings options={mergeOptions} onChange={setMergeOptions} />
+                <MergeSettings t={t} options={mergeOptions} onChange={setMergeOptions} />
 
                 <button
                   type="button"
                   onClick={handleExecuteMerge}
                   disabled={isProcessing}
-                  className="w-full py-3 text-xs sm:text-sm font-semibold text-white bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                  className="w-full py-3 text-xs sm:text-sm font-semibold text-white bg-neutral-900 dark:bg-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-50 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer"
                 >
                   <Layers className="w-4 h-4" />
-                  <span>{isProcessing ? 'Przetwarzanie...' : 'Połącz pliki w jeden PDF'}</span>
+                  <span>{isProcessing ? t.processing : t.mergeButton}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -228,6 +296,8 @@ export default function App() {
       {/* Result Modal */}
       {mergeResult && (
         <PdfResultModal
+          t={t}
+          currentLang={language}
           pdfBytes={mergeResult.pdfBytes}
           fileName={mergeResult.fileName}
           pageCount={mergeResult.pageCount}

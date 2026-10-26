@@ -1,12 +1,14 @@
 import React, { useRef, useState } from 'react';
 import { Upload } from 'lucide-react';
+import type { Translations } from '../i18n/translations';
 
 interface DropZoneProps {
+  t: Translations;
   onFilesSelected: (files: File[]) => void;
   isProcessing?: boolean;
 }
 
-export function DropZone({ onFilesSelected, isProcessing = false }: DropZoneProps) {
+export function DropZone({ t, onFilesSelected, isProcessing = false }: DropZoneProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const dragCounter = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -61,8 +63,8 @@ export function DropZone({ onFilesSelected, isProcessing = false }: DropZoneProp
       onClick={() => inputRef.current?.click()}
       className={`rounded-xl border-2 border-dashed transition-all p-8 sm:p-10 text-center cursor-pointer ${
         isDragOver
-          ? 'border-neutral-900 bg-neutral-100'
-          : 'border-neutral-300 hover:border-neutral-400 bg-white'
+          ? 'border-neutral-900 dark:border-white bg-neutral-100 dark:bg-neutral-800'
+          : 'border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600 bg-white dark:bg-neutral-900'
       }`}
     >
       <input
@@ -76,19 +78,19 @@ export function DropZone({ onFilesSelected, isProcessing = false }: DropZoneProp
       />
 
       <div className="flex flex-col items-center">
-        <div className="w-10 h-10 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-700 mb-3">
+        <div className="w-10 h-10 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-700 dark:text-neutral-300 mb-3">
           <Upload className="w-5 h-5" />
         </div>
 
-        <p className="text-sm font-semibold text-neutral-900 mb-1">
-          Przeciągnij pliki PDF lub obrazy tutaj
+        <p className="text-sm font-semibold text-neutral-900 dark:text-white mb-1">
+          {t.dropTitle}
         </p>
-        <p className="text-xs text-neutral-500 mb-4">
-          lub kliknij, aby wybrać z dysku (PDF, JPG, PNG)
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-4">
+          {t.dropSubtitle}
         </p>
 
-        <span className="px-4 py-2 text-xs font-semibold text-white bg-neutral-900 hover:bg-neutral-800 rounded-lg transition-colors shadow-2xs">
-          Wybierz pliki
+        <span className="px-4 py-2 text-xs font-semibold text-white bg-neutral-900 dark:bg-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-200 rounded-lg transition-colors shadow-2xs">
+          {t.selectFiles}
         </span>
       </div>
     </div>
