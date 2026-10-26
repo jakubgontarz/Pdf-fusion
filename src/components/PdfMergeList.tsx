@@ -1,7 +1,21 @@
-import { ArrowUp, ArrowDown, RotateCw, Trash2, FileText } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  ArrowUp,
+  ArrowDown,
+  RotateCw,
+  Trash2,
+  FileText,
+  GripVertical,
+  AlertCircle,
+} from 'lucide-react';
 import type { MergeQueueItem } from '../types';
-import { formatBytes } from '../utils/pdfOperations';
-import { type Translations, type Language, formatFilesCount, formatPagesCount } from '../i18n/translations';
+import { formatBytes, validatePageRange } from '../utils/pdfOperations';
+import {
+  type Translations,
+  type Language,
+  formatFilesCount,
+  formatPagesCount,
+} from '../i18n/translations';
 
 interface PdfMergeListProps {
   t: Translations;
@@ -9,6 +23,7 @@ interface PdfMergeListProps {
   items: MergeQueueItem[];
   onMoveUp: (index: number) => void;
   onMoveDown: (index: number) => void;
+  onReorder: (sourceIndex: number, targetIndex: number) => void;
   onRotate: (id: string) => void;
   onRemove: (id: string) => void;
   onUpdateRange: (id: string, range: string) => void;
@@ -22,14 +37,59 @@ export function PdfMergeList({
   items,
   onMoveUp,
   onMoveDown,
+  onReorder,
   onRotate,
   onRemove,
   onUpdateRange,
   onUpdateImageOption,
   onClearAll,
 }: PdfMergeListProps) {
-  const totalPages = items.reduce((acc, curr) => acc + curr.pageCount, 0);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const totalPages = items.reduce((acc, curr) => {
+    if (curr.type === 'pdf') {
+      const val = validatePageRange(curr.pageRange, curr.pageCount);
+      return acc + (val.isValid ? val.indices.length : curr.pageCount);
+    }
+    return acc + curr.pageCount;
+  }, 0);
+
   const totalBytes = items.reduce((acc, curr) => acc + curr.size, 0);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    e.dataTransfer.setData('text/plain', index.toString());
+    e.dataTransfer.effectAllowed = 'move';
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = (_e: React.DragEvent, index: number) => {
+    if (dragOverIndex === index) {
+      setDragOverIndex(null);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex !== null && draggedIndex !== targetIndex) {
+      onReorder(draggedIndex, targetIndex);
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
 
   return (
     <div className="space-y-3">
@@ -56,22 +116,49 @@ export function PdfMergeList({
         </button>
       </div>
 
-      {/* Items */}
-      <div className="space-y-2">
+      {/* Items List with Drag & Drop */}
+      <div className="space-y-2.5">
         {items.map((item, index) => {
           const isFirst = index === 0;
           const isLast = index === items.length - 1;
           const isImage = item.type === 'image';
+          const isDragging = draggedIndex === index;
+          const isDragOver = dragOverIndex === index && draggedIndex !== index;
+
+          // Validate page range for PDF items
+          const rangeValidation: { isValid: boolean; errorType?: 'out_of_range' | 'format'; indices?: number[] } = !isImage
+            ? validatePageRange(item.pageRange, item.pageCount)
+            : { isValid: true, indices: [] };
 
           return (
             <div
               key={item.id}
-              className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-3 flex flex-col gap-2.5 shadow-2xs hover:border-neutral-300 dark:hover:border-neutral-700 transition-colors"
+              draggable
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDragLeave={(e) => handleDragLeave(e, index)}
+              onDrop={(e) => handleDrop(e, index)}
+              onDragEnd={handleDragEnd}
+              className={`bg-white dark:bg-neutral-900 rounded-xl border p-3 flex flex-col gap-2.5 shadow-2xs transition-all ${
+                isDragging
+                  ? 'opacity-40 border-dashed border-neutral-400 dark:border-neutral-600'
+                  : isDragOver
+                  ? 'border-neutral-900 dark:border-white ring-2 ring-neutral-900/15 dark:ring-white/20 scale-[1.01]'
+                  : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700'
+              }`}
             >
               <div className="flex items-center justify-between gap-3">
-                {/* Left: Index, Icon/Thumb & Details */}
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-5 text-center text-xs font-mono text-neutral-400 select-none">
+                {/* Left: Drag Handle, Index, Icon/Thumb & Details */}
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  {/* Drag Handle */}
+                  <div
+                    className="p-1 text-neutral-400 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-200 cursor-grab active:cursor-grabbing shrink-0"
+                    title={t.dragToReorder}
+                  >
+                    <GripVertical className="w-4 h-4" />
+                  </div>
+
+                  <span className="w-5 text-center text-xs font-mono text-neutral-400 select-none hidden sm:inline">
                     {String(index + 1).padStart(2, '0')}
                   </span>
 
@@ -111,21 +198,39 @@ export function PdfMergeList({
 
                 {/* Right: Actions */}
                 <div className="flex items-center gap-2 shrink-0">
-                  {/* For PDF: Page range */}
+                  {/* For PDF: Page range input with validation */}
                   {!isImage && (
-                    <div className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
-                      <label htmlFor={`range-${item.id}`} className="hidden sm:inline">
-                        {t.pages}
-                      </label>
-                      <input
-                        id={`range-${item.id}`}
-                        type="text"
-                        value={item.pageRange}
-                        onChange={(e) => onUpdateRange(item.id, e.target.value)}
-                        placeholder={t.pagesPlaceholder}
-                        title={t.pages}
-                        className="w-16 sm:w-20 px-1.5 py-1 text-xs font-mono bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white rounded-md focus:bg-white dark:focus:bg-neutral-900 focus:outline-hidden focus:ring-1 focus:ring-neutral-900 dark:focus:ring-white text-center"
-                      />
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
+                        <label htmlFor={`range-${item.id}`} className="hidden md:inline">
+                          {t.pages}
+                        </label>
+                        <input
+                          id={`range-${item.id}`}
+                          type="text"
+                          value={item.pageRange}
+                          onChange={(e) => onUpdateRange(item.id, e.target.value)}
+                          placeholder={t.allPagesPlaceholder}
+                          title={t.pages}
+                          className={`w-20 sm:w-24 px-2 py-1 text-xs font-mono rounded-md text-center transition-colors focus:outline-hidden focus:ring-1 ${
+                            !rangeValidation.isValid
+                              ? 'border-red-500 dark:border-red-400 bg-red-50/60 dark:bg-red-950/30 text-red-900 dark:text-red-200 focus:ring-red-500'
+                              : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:bg-white dark:focus:bg-neutral-900 focus:ring-neutral-900 dark:focus:ring-white border'
+                          }`}
+                        />
+                      </div>
+
+                      {/* Warning label if invalid */}
+                      {!rangeValidation.isValid && (
+                        <div className="flex items-center gap-1 text-3xs font-medium text-red-600 dark:text-red-400 animate-in fade-in">
+                          <AlertCircle className="w-3 h-3 shrink-0" />
+                          <span>
+                            {rangeValidation.errorType === 'out_of_range'
+                              ? t.rangeErrorOutOfRange.replace('{max}', String(item.pageCount))
+                              : t.rangeErrorFormat}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -176,7 +281,7 @@ export function PdfMergeList({
 
               {/* Image specific layout controls */}
               {isImage && (
-                <div className="pl-8 pt-2 border-t border-neutral-100 dark:border-neutral-800 flex flex-wrap items-center gap-3 text-xs text-neutral-600 dark:text-neutral-300">
+                <div className="pl-6 sm:pl-8 pt-2 border-t border-neutral-100 dark:border-neutral-800 flex flex-wrap items-center gap-3 text-xs text-neutral-600 dark:text-neutral-300">
                   <div className="flex items-center gap-1.5">
                     <span className="text-neutral-400">{t.imageFormat}</span>
                     <select

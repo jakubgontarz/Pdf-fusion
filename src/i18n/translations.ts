@@ -13,7 +13,11 @@ export interface Translations {
   pageSingular: string;
   pagePlural: string;
   pages: string;
-  pagesPlaceholder: string;
+  allPagesPlaceholder: string;
+  rangeErrorOutOfRange: string;
+  rangeErrorFormat: string;
+  fixRangeErrors: string;
+  dragToReorder: string;
   rotate: string;
   moveUp: string;
   moveDown: string;
@@ -77,7 +81,11 @@ export const translations: Record<Language, Translations> = {
     pageSingular: 'strona',
     pagePlural: 'stron',
     pages: 'Strony:',
-    pagesPlaceholder: 'all lub np. 1-3',
+    allPagesPlaceholder: 'wszystkie',
+    rangeErrorOutOfRange: 'Maks. {max} stron',
+    rangeErrorFormat: 'Zły format (np. 1-3)',
+    fixRangeErrors: 'Popraw nieprawidłowy zakres stron',
+    dragToReorder: 'Przeciągnij, aby zmienić kolejność',
     rotate: 'Obróć o 90°',
     moveUp: 'W górę',
     moveDown: 'W dół',
@@ -139,7 +147,11 @@ export const translations: Record<Language, Translations> = {
     pageSingular: 'page',
     pagePlural: 'pages',
     pages: 'Pages:',
-    pagesPlaceholder: 'all or e.g. 1-3',
+    allPagesPlaceholder: 'all',
+    rangeErrorOutOfRange: 'Max {max} pages',
+    rangeErrorFormat: 'Invalid format (e.g. 1-3)',
+    fixRangeErrors: 'Please fix page range errors',
+    dragToReorder: 'Drag to reorder',
     rotate: 'Rotate 90°',
     moveUp: 'Move up',
     moveDown: 'Move down',
@@ -201,7 +213,11 @@ export const translations: Record<Language, Translations> = {
     pageSingular: 'Seite',
     pagePlural: 'Seiten',
     pages: 'Seiten:',
-    pagesPlaceholder: 'alle oder z. B. 1-3',
+    allPagesPlaceholder: 'alle',
+    rangeErrorOutOfRange: 'Max. {max} Seiten',
+    rangeErrorFormat: 'Ungültig (z. B. 1-3)',
+    fixRangeErrors: 'Seitenbereichsfehler beheben',
+    dragToReorder: 'Ziehen zum Neuanordnen',
     rotate: 'Um 90° drehen',
     moveUp: 'Nach oben',
     moveDown: 'Nach unten',
@@ -263,7 +279,11 @@ export const translations: Record<Language, Translations> = {
     pageSingular: 'página',
     pagePlural: 'páginas',
     pages: 'Páginas:',
-    pagesPlaceholder: 'todas o ej. 1-3',
+    allPagesPlaceholder: 'todas',
+    rangeErrorOutOfRange: 'Máx. {max} págs',
+    rangeErrorFormat: 'Inválido (ej. 1-3)',
+    fixRangeErrors: 'Corrige los errores de páginas',
+    dragToReorder: 'Arrastra para reordenar',
     rotate: 'Girar 90°',
     moveUp: 'Subir',
     moveDown: 'Bajar',
@@ -325,7 +345,11 @@ export const translations: Record<Language, Translations> = {
     pageSingular: 'page',
     pagePlural: 'pages',
     pages: 'Pages :',
-    pagesPlaceholder: 'toutes ou ex. 1-3',
+    allPagesPlaceholder: 'toutes',
+    rangeErrorOutOfRange: 'Max {max} pages',
+    rangeErrorFormat: 'Invalide (ex. 1-3)',
+    fixRangeErrors: 'Corrigez les erreurs de pages',
+    dragToReorder: 'Glisser pour réorganiser',
     rotate: 'Pivoter de 90°',
     moveUp: 'Monter',
     moveDown: 'Descendre',
@@ -384,9 +408,6 @@ export const availableLanguages: Array<{ code: Language; label: string }> = [
   { code: 'fr', label: 'Français' },
 ];
 
-/**
- * Detects language from navigator.language or defaults to Polish if pl, or English
- */
 export function detectDefaultLanguage(): Language {
   if (typeof window === 'undefined' || !navigator.language) {
     return 'pl';

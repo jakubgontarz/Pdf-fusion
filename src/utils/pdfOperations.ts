@@ -37,43 +37,80 @@ export function sanitizeForStandardFont(text: string): string {
     .replace(/[^\x00-\x7F]/g, '');
 }
 
+export interface PageRangeValidationResult {
+  isValid: boolean;
+  errorType?: 'out_of_range' | 'format';
+  indices: number[];
+}
+
+/**
+ * Validates user-provided page range string (e.g. "1-3, 5") against document total pages.
+ * Empty string or standard keywords mean all pages and are valid.
+ */
+export function validatePageRange(rangeStr: string, totalPages: number): PageRangeValidationResult {
+  if (totalPages <= 0) {
+    return { isValid: true, indices: [] };
+  }
+  const cleanStr = rangeStr.trim().toLowerCase();
+  if (!cleanStr || ['all', 'wszystkie', 'alle', 'todas', 'toutes'].includes(cleanStr)) {
+    return { isValid: true, indices: Array.from({ length: totalPages }, (_, i) => i) };
+  }
+
+  const parts = cleanStr.split(/[,;\s]+/).filter(Boolean);
+  if (parts.length === 0) {
+    return { isValid: true, indices: Array.from({ length: totalPages }, (_, i) => i) };
+  }
+
+  const resultIndices = new Set<number>();
+
+  for (const part of parts) {
+    if (part.includes('-')) {
+      const sides = part.split('-');
+      if (sides.length !== 2) {
+        return { isValid: false, errorType: 'format', indices: [] };
+      }
+      const s0 = sides[0].trim();
+      const s1 = sides[1].trim();
+      if (!/^\d+$/.test(s0) || !/^\d+$/.test(s1)) {
+        return { isValid: false, errorType: 'format', indices: [] };
+      }
+      const start = parseInt(s0, 10);
+      const end = parseInt(s1, 10);
+      if (isNaN(start) || isNaN(end) || start < 1 || end < 1 || start > end || start > totalPages || end > totalPages) {
+        return { isValid: false, errorType: 'out_of_range', indices: [] };
+      }
+      for (let p = start; p <= end; p++) {
+        resultIndices.add(p - 1);
+      }
+    } else {
+      const trimmed = part.trim();
+      if (!/^\d+$/.test(trimmed)) {
+        return { isValid: false, errorType: 'format', indices: [] };
+      }
+      const single = parseInt(trimmed, 10);
+      if (isNaN(single) || single < 1 || single > totalPages) {
+        return { isValid: false, errorType: 'out_of_range', indices: [] };
+      }
+      resultIndices.add(single - 1);
+    }
+  }
+
+  const sorted = Array.from(resultIndices).sort((a, b) => a - b);
+  return { isValid: true, indices: sorted };
+}
+
 /**
  * Parses user input for page ranges like "1-3, 5, 7-9" into an array of 0-based page indices.
  * If rangeStr is empty, invalid, or "all", all pages (0 to totalPages - 1) are returned.
  */
 export function parsePageRanges(rangeStr: string, totalPages: number): number[] {
-  if (totalPages <= 0) return [];
-  const cleanStr = rangeStr.trim().toLowerCase();
-  if (!cleanStr || cleanStr === 'all' || cleanStr === 'wszystkie') {
-    return Array.from({ length: totalPages }, (_, i) => i);
+  const res = validatePageRange(rangeStr, totalPages);
+  if (res.isValid && res.indices.length > 0) {
+    return res.indices;
   }
-
-  const resultIndices = new Set<number>();
-  const parts = cleanStr.split(/[,;\s]+/).filter(Boolean);
-
-  for (const part of parts) {
-    if (part.includes('-')) {
-      const [startStr, endStr] = part.split('-');
-      const start = parseInt(startStr, 10);
-      const end = parseInt(endStr, 10);
-      if (!isNaN(start) && !isNaN(end)) {
-        const from = Math.max(1, Math.min(start, end));
-        const to = Math.min(totalPages, Math.max(start, end));
-        for (let p = from; p <= to; p++) {
-          resultIndices.add(p - 1);
-        }
-      }
-    } else {
-      const single = parseInt(part, 10);
-      if (!isNaN(single) && single >= 1 && single <= totalPages) {
-        resultIndices.add(single - 1);
-      }
-    }
-  }
-
-  const sorted = Array.from(resultIndices).sort((a, b) => a - b);
-  return sorted.length > 0 ? sorted : Array.from({ length: totalPages }, (_, i) => i);
+  return Array.from({ length: totalPages }, (_, i) => i);
 }
+
 
 /**
  * In-browser canvas image compressor / resizer

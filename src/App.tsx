@@ -6,13 +6,13 @@
 import { useState, useEffect } from 'react';
 import { PDFDocument } from 'pdf-lib';
 import type { MergeQueueItem, MergeOptions } from './types';
-import { mergeUnifiedQueue } from './utils/pdfOperations';
+import { mergeUnifiedQueue, validatePageRange } from './utils/pdfOperations';
 import { Header } from './components/Header';
 import { DropZone } from './components/DropZone';
 import { PdfMergeList } from './components/PdfMergeList';
 import { MergeSettings } from './components/MergeSettings';
 import { PdfResultModal } from './components/PdfResultModal';
-import { ArrowRight, Layers } from 'lucide-react';
+import { ArrowRight, Layers, AlertCircle } from 'lucide-react';
 import {
   type Language,
   translations,
@@ -58,7 +58,7 @@ export default function App() {
     try {
       localStorage.setItem('pdf_fusion_theme', theme);
     } catch {
-      // localStorage may fail in restricted environments
+      // ignore
     }
   }, [theme]);
 
@@ -122,7 +122,7 @@ export default function App() {
               size: file.size,
               buffer,
               pageCount: doc.getPageCount(),
-              pageRange: 'all',
+              pageRange: '', // Default to empty string so gray placeholder appears!
               rotation: 0,
               imagePageSize: 'a4',
               imageOrientation: 'portrait',
@@ -183,6 +183,17 @@ export default function App() {
     });
   };
 
+  // Reorder items via Drag & Drop
+  const handleReorder = (sourceIndex: number, targetIndex: number) => {
+    if (sourceIndex === targetIndex) return;
+    setItems((prev) => {
+      const copy = [...prev];
+      const [moved] = copy.splice(sourceIndex, 1);
+      copy.splice(targetIndex, 0, moved);
+      return copy;
+    });
+  };
+
   const handleRotate = (id: string) => {
     setItems((prev) =>
       prev.map((item) =>
@@ -211,8 +222,13 @@ export default function App() {
     setItems([]);
   };
 
+  // Validate if any item has an invalid page range
+  const hasRangeErrors = items.some(
+    (item) => item.type === 'pdf' && !validatePageRange(item.pageRange, item.pageCount).isValid
+  );
+
   const handleExecuteMerge = async () => {
-    if (items.length === 0) return;
+    if (items.length === 0 || hasRangeErrors) return;
 
     setIsProcessing(true);
     const startTime = performance.now();
@@ -245,24 +261,25 @@ export default function App() {
         onToggleTheme={toggleTheme}
       />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {items.length === 0 ? (
           /* Empty state: Clean dropzone without fluff */
           <div className="max-w-xl mx-auto py-8">
             <DropZone t={t} onFilesSelected={handleFilesSelected} isProcessing={isProcessing} />
           </div>
         ) : (
-          /* Workspace with files and settings */
+          /* Workspace with wider settings column (7/5 split) */
           <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Files queue (2 columns) */}
-              <div className="lg:col-span-2 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Files queue (7 columns of 12) */}
+              <div className="lg:col-span-7 space-y-4">
                 <PdfMergeList
                   t={t}
                   currentLang={language}
                   items={items}
                   onMoveUp={handleMoveUp}
                   onMoveDown={handleMoveDown}
+                  onReorder={handleReorder}
                   onRotate={handleRotate}
                   onRemove={handleRemove}
                   onUpdateRange={handleUpdateRange}
@@ -273,15 +290,27 @@ export default function App() {
                 <DropZone t={t} onFilesSelected={handleFilesSelected} isProcessing={isProcessing} />
               </div>
 
-              {/* Settings column */}
-              <div className="space-y-4">
+              {/* Settings column (5 columns of 12 = wider and comfortable) */}
+              <div className="lg:col-span-5 space-y-4 sticky top-20">
                 <MergeSettings t={t} options={mergeOptions} onChange={setMergeOptions} />
+
+                {/* Validation warning if ranges are invalid */}
+                {hasRangeErrors && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 text-xs animate-in fade-in">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-600 dark:text-red-400" />
+                    <span>{t.fixRangeErrors}</span>
+                  </div>
+                )}
 
                 <button
                   type="button"
                   onClick={handleExecuteMerge}
-                  disabled={isProcessing}
-                  className="w-full py-3 text-xs sm:text-sm font-semibold text-white bg-neutral-900 dark:bg-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-50 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                  disabled={isProcessing || hasRangeErrors}
+                  className={`w-full py-3 px-4 text-xs sm:text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer ${
+                    hasRangeErrors
+                      ? 'bg-neutral-300 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 cursor-not-allowed opacity-60'
+                      : 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-50'
+                  }`}
                 >
                   <Layers className="w-4 h-4" />
                   <span>{isProcessing ? t.processing : t.mergeButton}</span>

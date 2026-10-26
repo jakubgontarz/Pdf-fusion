@@ -1,14 +1,40 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parsePageRanges, formatBytes, mergeUnifiedQueue, generateTestPdf } from './pdfOperations';
+import { parsePageRanges, validatePageRange, formatBytes, mergeUnifiedQueue, generateTestPdf } from './pdfOperations';
 import type { MergeQueueItem, MergeOptions } from '../types';
 
-test('parsePageRanges parses page ranges properly', () => {
-  assert.deepEqual(parsePageRanges('1-3', 5), [0, 1, 2]);
-  assert.deepEqual(parsePageRanges('1, 3, 5', 5), [0, 2, 4]);
-  assert.deepEqual(parsePageRanges('all', 3), [0, 1, 2]);
-  assert.deepEqual(parsePageRanges('', 3), [0, 1, 2]);
+test('validatePageRange validates empty strings, valid ranges and catches errors', () => {
+  // Empty or standard keyword -> valid, returns all pages
+  assert.equal(validatePageRange('', 5).isValid, true);
+  assert.deepEqual(validatePageRange('', 5).indices, [0, 1, 2, 3, 4]);
+  assert.equal(validatePageRange('all', 3).isValid, true);
+  assert.equal(validatePageRange('wszystkie', 3).isValid, true);
+
+  // Valid specific ranges
+  const v1 = validatePageRange('1-3, 5', 5);
+  assert.equal(v1.isValid, true);
+  assert.deepEqual(v1.indices, [0, 1, 2, 4]);
+
+  // Out of range (exceeding document page count)
+  const v2 = validatePageRange('1-10', 3);
+  assert.equal(v2.isValid, false);
+  assert.equal(v2.errorType, 'out_of_range');
+
+  const v3 = validatePageRange('5', 3);
+  assert.equal(v3.isValid, false);
+  assert.equal(v3.errorType, 'out_of_range');
+
+  // Reversed range e.g. 5-2
+  const v4 = validatePageRange('5-2', 5);
+  assert.equal(v4.isValid, false);
+  assert.equal(v4.errorType, 'out_of_range');
+
+  // Invalid format e.g. text or strange characters
+  const v5 = validatePageRange('abc', 5);
+  assert.equal(v5.isValid, false);
+  assert.equal(v5.errorType, 'format');
 });
+
 
 test('formatBytes formats bytes correctly', () => {
   assert.equal(formatBytes(0), '0 B');
