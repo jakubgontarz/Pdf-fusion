@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import appIcon from '../pdf_fusion_icon.png';
 import { ShieldCheck, Moon, Sun, Globe, Check } from 'lucide-react';
 import { type Language, availableLanguages, type Translations } from '../i18n/translations';
 
@@ -36,9 +37,11 @@ export function Header({
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
         {/* Brand */}
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 flex items-center justify-center font-bold text-xs tracking-tight shadow-xs">
-            PDF
-          </div>
+          <img
+            src={appIcon}
+            alt="PDF Fusion"
+            className="w-8 h-8 rounded-lg object-contain shadow-xs"
+          />
           <span className="text-base font-bold tracking-tight text-neutral-900 dark:text-white">
             {t.appName}
           </span>
