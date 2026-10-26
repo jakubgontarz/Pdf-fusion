@@ -6,4 +6,24 @@
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   }
+
+  /* High-contrast, unmistakable text selection across both light and dark modes */
+  ::selection {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+  }
+
+  input::selection,
+  textarea::selection {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+  }
+
+  input[type="text"],
+  input[type="search"],
+  input[type="number"],
+  textarea {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
 }
