@@ -12,7 +12,7 @@
 
 ---
 
-## Główne funkcje (Key Features)
+## Główne funkcje
 
 - **100% Prywatności i Działanie Offline**:
   - Brak przesyłania plików na serwer.
@@ -47,7 +47,7 @@
   - Przełącznik motywu w pasku nagłówka.
   - Automatyczne zapamiętywanie wyboru w `localStorage` oraz obsługa preferencji systemowych.
 
-- **Wielojęzyczność (Multilingual)**:
+- **Wielojęzyczność**:
   - Obsługa 5 języków: **Polski (PL)**, **English (EN)**, **Deutsch (DE)**, **Español (ES)**, **Français (FR)**.
   - Automatyczne dopasowanie do języka systemu operacyjnego/przeglądarki przy pierwszym uruchomieniu.
   - Zapamiętywanie wybranego języka w pamięci przeglądarki.
@@ -58,7 +58,7 @@
 
 ---
 
-## Stos technologiczny (Tech Stack)
+## Stos technologiczny
 
 - **Framework**: [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
 - **Build Tool**: [Vite 8](https://vitejs.dev/)
@@ -69,7 +69,7 @@
 
 ---
 
-## Uruchomienie lokalne (Getting Started)
+## Uruchomienie lokalne
 
 ### Wymagania wstępne
 - [Node.js](https://nodejs.org/) (wersja 20 lub nowsza)
