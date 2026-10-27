@@ -275,16 +275,42 @@ export async function mergeUnifiedQueue(
         pageWidth = imgWidth;
         pageHeight = imgHeight;
       } else {
+        let baseW = A4_WIDTH;
+        let baseH = A4_HEIGHT;
+
+        if (item.imagePageSize === 'a3') {
+          baseW = 841.89;
+          baseH = 1190.55;
+        } else if (item.imagePageSize === 'a5') {
+          baseW = 419.53;
+          baseH = 595.28;
+        } else if (item.imagePageSize === 'letter') {
+          baseW = 612.00;
+          baseH = 792.00;
+        } else if (item.imagePageSize === 'legal') {
+          baseW = 612.00;
+          baseH = 1008.00;
+        } else if (item.imagePageSize === 'custom') {
+          // Convert mm to points (1 mm = 72 / 25.4 pt = 2.834645669 pt)
+          const mmW = Math.max(10, Math.min(2500, Number(item.customWidthMm) || 210));
+          const mmH = Math.max(10, Math.min(2500, Number(item.customHeightMm) || 297));
+          baseW = mmW * (72 / 25.4);
+          baseH = mmH * (72 / 25.4);
+        }
+
         const isLandscape =
           item.imageOrientation === 'landscape' ||
           (item.imageOrientation === 'auto' && imgWidth > imgHeight);
 
+        const minDim = Math.min(baseW, baseH);
+        const maxDim = Math.max(baseW, baseH);
+
         if (isLandscape) {
-          pageWidth = A4_HEIGHT;
-          pageHeight = A4_WIDTH;
+          pageWidth = maxDim;
+          pageHeight = minDim;
         } else {
-          pageWidth = A4_WIDTH;
-          pageHeight = A4_HEIGHT;
+          pageWidth = minDim;
+          pageHeight = maxDim;
         }
       }
 

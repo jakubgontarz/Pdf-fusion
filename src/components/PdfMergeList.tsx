@@ -7,6 +7,7 @@ import {
   FileText,
   GripVertical,
   AlertCircle,
+  Copy,
 } from 'lucide-react';
 import type { MergeQueueItem } from '../types';
 import { formatBytes, validatePageRange } from '../utils/pdfOperations';
@@ -28,6 +29,7 @@ interface PdfMergeListProps {
   onRemove: (id: string) => void;
   onUpdateRange: (id: string, range: string) => void;
   onUpdateImageOption: (id: string, partial: Partial<MergeQueueItem>) => void;
+  onApplyImageSettingsToAll: (sourceId: string) => void;
   onClearAll: () => void;
 }
 
@@ -51,6 +53,8 @@ interface PdfMergeListItemProps {
   onRemove: (id: string) => void;
   onUpdateRange: (id: string, range: string) => void;
   onUpdateImageOption: (id: string, partial: Partial<MergeQueueItem>) => void;
+  onApplyImageSettingsToAll: (sourceId: string) => void;
+  totalOtherImages: number;
 }
 
 function PdfMergeListItem({
@@ -73,6 +77,8 @@ function PdfMergeListItem({
   onRemove,
   onUpdateRange,
   onUpdateImageOption,
+  onApplyImageSettingsToAll,
+  totalOtherImages,
 }: PdfMergeListItemProps) {
   // Draggable is false by default so all inputs and text are natively selectable.
   // It is only enabled when interacting with the drag handle or non-interactive card space.
@@ -119,7 +125,7 @@ function PdfMergeListItem({
         setIsDraggable(false);
         onDragEnd();
       }}
-      className={`bg-white dark:bg-neutral-900 rounded-xl border p-3 flex flex-col gap-2.5 shadow-2xs transition-all ${
+      className={`bg-white dark:bg-neutral-900 rounded-xl border p-3 flex flex-col gap-2.5 shadow-2xs transition-all overflow-hidden ${
         isDragging
           ? 'opacity-40 border-dashed border-neutral-400 dark:border-neutral-600'
           : isDragOver
@@ -288,54 +294,140 @@ function PdfMergeListItem({
           data-no-drag="true"
           onMouseDown={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
-          className="pt-2 sm:pt-2.5 sm:pl-9 border-t border-neutral-100 dark:border-neutral-800 flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-neutral-600 dark:text-neutral-300"
+          className="pt-2 border-t border-neutral-100 dark:border-neutral-800/80 flex flex-col gap-2 text-xs text-neutral-600 dark:text-neutral-300"
         >
-          <div className="flex items-center gap-1.5 min-w-[120px] flex-1 sm:flex-initial">
-            <span className="text-2xs sm:text-xs text-neutral-400 shrink-0">{t.imageFormat}</span>
-            <select
-              value={item.imagePageSize}
-              onChange={(e) =>
-                onUpdateImageOption(item.id, { imagePageSize: e.target.value as any })
-              }
-              className="w-full sm:w-auto px-2 py-1 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden"
-            >
-              <option value="a4">{t.imageFormatA4}</option>
-              <option value="fit">{t.imageFormatFit}</option>
-            </select>
+          {/* Controls row - stays in one line on wide mode */}
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-2 min-w-0">
+            {/* Format selector */}
+            <div className="flex items-center gap-1 shrink-0">
+              <span className="text-2xs text-neutral-400 font-medium shrink-0">{t.imageFormat}</span>
+              <select
+                value={item.imagePageSize}
+                onChange={(e) =>
+                  onUpdateImageOption(item.id, {
+                    imagePageSize: e.target.value as any,
+                    customWidthMm: item.customWidthMm ?? 210,
+                    customHeightMm: item.customHeightMm ?? 297,
+                  })
+                }
+                className={`px-1.5 py-1 text-2xs sm:text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden cursor-pointer ${
+                  item.imagePageSize === 'fit' ? 'w-auto max-w-[130px]' : 'w-[74px] sm:w-[78px]'
+                }`}
+              >
+                <option value="a4">{t.imageFormatA4}</option>
+                <option value="a5">{t.imageFormatA5}</option>
+                <option value="a3">{t.imageFormatA3}</option>
+                <option value="letter">{t.imageFormatLetter}</option>
+                <option value="legal">{t.imageFormatLegal}</option>
+                <option value="fit">{t.imageFormatFit}</option>
+                <option value="custom">{t.imageFormatCustom}</option>
+              </select>
+            </div>
+
+            {/* Orientation & Margin for non-fit page sizes */}
+            {item.imagePageSize !== 'fit' && (
+              <>
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="text-2xs text-neutral-400 font-medium shrink-0">{t.orientation}</span>
+                  <select
+                    value={item.imageOrientation}
+                    onChange={(e) =>
+                      onUpdateImageOption(item.id, { imageOrientation: e.target.value as any })
+                    }
+                    className="w-[82px] sm:w-[86px] px-1.5 py-1 text-2xs sm:text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden cursor-pointer"
+                  >
+                    <option value="portrait">{t.orientationPortrait}</option>
+                    <option value="landscape">{t.orientationLandscape}</option>
+                    <option value="auto">{t.orientationAuto}</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="text-2xs text-neutral-400 font-medium shrink-0">{t.margin}</span>
+                  <select
+                    value={item.imageMargin}
+                    onChange={(e) =>
+                      onUpdateImageOption(item.id, { imageMargin: e.target.value as any })
+                    }
+                    className="w-[88px] sm:w-[94px] px-1.5 py-1 text-2xs sm:text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden cursor-pointer"
+                  >
+                    <option value="none">{t.marginNone}</option>
+                    <option value="small">{t.marginSmall}</option>
+                    <option value="normal">{t.marginNormal}</option>
+                  </select>
+                </div>
+              </>
+            )}
+
+            {/* Button to apply settings to other images, with label "wszystkie" */}
+            <div className="inline-flex items-center sm:ml-auto shrink-0">
+              <button
+                type="button"
+                data-no-drag="true"
+                onClick={() => {
+                  if (totalOtherImages === 0) return;
+                  onApplyImageSettingsToAll(item.id);
+                }}
+                disabled={totalOtherImages === 0}
+                title={
+                  totalOtherImages === 0
+                    ? t.noOtherImages
+                    : `${t.applyToRemainingImages}${totalOtherImages > 0 ? ` (${totalOtherImages})` : ''}`
+                }
+                className={`inline-flex items-center gap-1 px-2 py-1 text-2xs sm:text-xs font-medium rounded-md border transition-all cursor-pointer shrink-0 ${
+                  totalOtherImages === 0
+                    ? 'opacity-40 cursor-not-allowed bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500 border-neutral-200 dark:border-neutral-700'
+                    : 'bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 border-neutral-200 dark:border-neutral-700 hover:text-neutral-900 dark:hover:text-white shadow-2xs active:scale-95'
+                }`}
+                aria-label={t.applyToRemainingImages}
+              >
+                <Copy className="w-3 h-3 text-neutral-500 dark:text-neutral-400 shrink-0" />
+                <span>{t.applyAllButton}</span>
+              </button>
+            </div>
           </div>
 
-          {item.imagePageSize !== 'fit' && (
-            <>
-              <div className="flex items-center gap-1.5 min-w-[120px] flex-1 sm:flex-initial">
-                <span className="text-2xs sm:text-xs text-neutral-400 shrink-0">{t.orientation}</span>
-                <select
-                  value={item.imageOrientation}
-                  onChange={(e) =>
-                    onUpdateImageOption(item.id, { imageOrientation: e.target.value as any })
-                  }
-                  className="w-full sm:w-auto px-2 py-1 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden"
-                >
-                  <option value="portrait">{t.orientationPortrait}</option>
-                  <option value="landscape">{t.orientationLandscape}</option>
-                  <option value="auto">{t.orientationAuto}</option>
-                </select>
+          {/* Custom dimensions inputs if 'custom' is selected */}
+          {item.imagePageSize === 'custom' && (
+            <div className="flex items-center gap-2 pt-1 border-t border-dashed border-neutral-100 dark:border-neutral-800/80 text-2xs text-neutral-500 dark:text-neutral-400">
+              <div className="flex items-center gap-1">
+                <span className="shrink-0">{t.customWidth}:</span>
+                <input
+                  type="number"
+                  data-no-drag="true"
+                  min="10"
+                  max="2500"
+                  step="1"
+                  value={item.customWidthMm ?? 210}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value, 10);
+                    onUpdateImageOption(item.id, { customWidthMm: isNaN(val) ? 210 : val });
+                  }}
+                  onMouseEnter={() => setIsDraggable(false)}
+                  onFocus={() => setIsDraggable(false)}
+                  className="w-16 px-1.5 py-0.5 text-xs font-mono bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden text-center cursor-text select-text"
+                />
               </div>
-
-              <div className="flex items-center gap-1.5 min-w-[120px] flex-1 sm:flex-initial">
-                <span className="text-2xs sm:text-xs text-neutral-400 shrink-0">{t.margin}</span>
-                <select
-                  value={item.imageMargin}
-                  onChange={(e) =>
-                    onUpdateImageOption(item.id, { imageMargin: e.target.value as any })
-                  }
-                  className="w-full sm:w-auto px-2 py-1 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden"
-                >
-                  <option value="none">{t.marginNone}</option>
-                  <option value="small">{t.marginSmall}</option>
-                  <option value="normal">{t.marginNormal}</option>
-                </select>
+              <span className="text-neutral-300 dark:text-neutral-600">×</span>
+              <div className="flex items-center gap-1">
+                <span className="shrink-0">{t.customHeight}:</span>
+                <input
+                  type="number"
+                  data-no-drag="true"
+                  min="10"
+                  max="2500"
+                  step="1"
+                  value={item.customHeightMm ?? 297}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value, 10);
+                    onUpdateImageOption(item.id, { customHeightMm: isNaN(val) ? 297 : val });
+                  }}
+                  onMouseEnter={() => setIsDraggable(false)}
+                  onFocus={() => setIsDraggable(false)}
+                  className="w-16 px-1.5 py-0.5 text-xs font-mono bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 focus:outline-hidden text-center cursor-text select-text"
+                />
               </div>
-            </>
+            </div>
           )}
         </div>
       )}
@@ -354,10 +446,13 @@ export function PdfMergeList({
   onRemove,
   onUpdateRange,
   onUpdateImageOption,
+  onApplyImageSettingsToAll,
   onClearAll,
 }: PdfMergeListProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const totalOtherImages = Math.max(0, items.filter((i) => i.type === 'image').length - 1);
 
   const totalPages = items.reduce((acc, curr) => {
     if (curr.type === 'pdf') {
@@ -466,6 +561,8 @@ export function PdfMergeList({
               onRemove={onRemove}
               onUpdateRange={onUpdateRange}
               onUpdateImageOption={onUpdateImageOption}
+              onApplyImageSettingsToAll={onApplyImageSettingsToAll}
+              totalOtherImages={totalOtherImages}
             />
           );
         })}

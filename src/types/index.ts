@@ -12,7 +12,9 @@ export interface MergeQueueItem {
   pageRange: string; // for PDF, e.g. 'all', '1-3'
   rotation: number; // 0, 90, 180, 270
   // Image-specific layout options
-  imagePageSize: 'a4' | 'fit';
+  imagePageSize: 'a4' | 'a3' | 'a5' | 'letter' | 'legal' | 'fit' | 'custom';
+  customWidthMm?: number;
+  customHeightMm?: number;
   imageOrientation: 'portrait' | 'landscape' | 'auto';
   imageMargin: 'none' | 'small' | 'normal';
 }

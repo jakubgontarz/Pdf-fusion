@@ -12,7 +12,7 @@ import { DropZone } from './components/DropZone';
 import { PdfMergeList } from './components/PdfMergeList';
 import { MergeSettings } from './components/MergeSettings';
 import { PdfResultModal } from './components/PdfResultModal';
-import { ArrowRight, Layers, AlertCircle } from 'lucide-react';
+import { ArrowRight, Layers, AlertCircle, Check, X } from 'lucide-react';
 import {
   type Language,
   translations,
@@ -101,6 +101,20 @@ export default function App() {
     durationMs: number;
   } | null>(null);
 
+  // Top notification banner for actions (e.g. applying settings to all images)
+  const [topNotification, setTopNotification] = useState<{
+    id: number;
+    message: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!topNotification) return;
+    const timer = setTimeout(() => {
+      setTopNotification((curr) => (curr?.id === topNotification.id ? null : curr));
+    }, 3500);
+    return () => clearTimeout(timer);
+  }, [topNotification]);
+
   const handleFilesSelected = async (files: File[]) => {
     if (files.length === 0) return;
     setIsProcessing(true);
@@ -153,6 +167,8 @@ export default function App() {
             pageRange: '1',
             rotation: 0,
             imagePageSize: 'a4',
+            customWidthMm: 210,
+            customHeightMm: 297,
             imageOrientation: 'portrait',
             imageMargin: 'small',
           });
@@ -222,6 +238,38 @@ export default function App() {
     );
   };
 
+  const handleApplyImageSettingsToAll = (sourceId: string) => {
+    const sourceItem = items.find((i) => i.id === sourceId);
+    if (!sourceItem || sourceItem.type !== 'image') return;
+
+    const otherImages = items.filter((i) => i.type === 'image' && i.id !== sourceId);
+    if (otherImages.length === 0) return;
+
+    setItems((prev) =>
+      prev.map((item) => {
+        if (item.type !== 'image' || item.id === sourceId) return item;
+        return {
+          ...item,
+          imagePageSize: sourceItem.imagePageSize,
+          customWidthMm: sourceItem.customWidthMm ?? 210,
+          customHeightMm: sourceItem.customHeightMm ?? 297,
+          imageOrientation: sourceItem.imageOrientation,
+          imageMargin: sourceItem.imageMargin,
+        };
+      })
+    );
+
+    const message =
+      language === 'pl' && otherImages.length === 1
+        ? 'Zastosowano do 1 pozostałego obrazu'
+        : t.appliedToRemainingImages.replace('{count}', String(otherImages.length));
+
+    setTopNotification({
+      id: Date.now(),
+      message,
+    });
+  };
+
   const handleClearAll = () => {
     setItems([]);
   };
@@ -256,7 +304,35 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 flex flex-col font-sans transition-colors">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 flex flex-col font-sans transition-colors relative">
+      {/* Top Notification Toast */}
+      {topNotification && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed top-4 sm:top-5 left-1/2 -translate-x-1/2 z-50 max-w-lg w-[calc(100%-2rem)] animate-in fade-in slide-in-from-top-4 duration-200"
+        >
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5 sm:py-3 rounded-xl bg-neutral-900/95 dark:bg-neutral-800/95 text-white border border-neutral-700/60 shadow-xl backdrop-blur-md">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="p-1 rounded-full bg-emerald-500/20 text-emerald-400 shrink-0">
+                <Check className="w-4 h-4 stroke-[2.5]" />
+              </span>
+              <p className="text-xs sm:text-sm font-medium text-neutral-100 truncate">
+                {topNotification.message}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setTopNotification(null)}
+              className="p-1 text-neutral-400 hover:text-white hover:bg-neutral-700/50 rounded-md transition-colors cursor-pointer shrink-0"
+              aria-label={t.closeBtn}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <Header
         t={t}
         currentLang={language}
@@ -265,17 +341,17 @@ export default function App() {
         onToggleTheme={toggleTheme}
       />
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-8">
+      <main className="flex-1 max-w-6xl xl:max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-8">
         {items.length === 0 ? (
           /* Empty state: Clean dropzone without fluff */
           <div className="max-w-xl mx-auto py-6 sm:py-8">
             <DropZone t={t} onFilesSelected={handleFilesSelected} isProcessing={isProcessing} />
           </div>
         ) : (
-          /* Workspace with wider settings column (7/5 split) */
+          /* Workspace with balanced columns (7/5 on lg, 8/4 on xl) */
           <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
-              {/* Files queue (7 columns of 12) */}
+              {/* Files queue (7 cols on desktop) */}
               <div className="lg:col-span-7 space-y-4">
                 <PdfMergeList
                   t={t}
@@ -288,13 +364,14 @@ export default function App() {
                   onRemove={handleRemove}
                   onUpdateRange={handleUpdateRange}
                   onUpdateImageOption={handleUpdateImageOption}
+                  onApplyImageSettingsToAll={handleApplyImageSettingsToAll}
                   onClearAll={handleClearAll}
                 />
 
                 <DropZone t={t} onFilesSelected={handleFilesSelected} isProcessing={isProcessing} />
               </div>
 
-              {/* Settings column (5 columns of 12 = wider and comfortable) */}
+              {/* Settings column (5 cols on desktop - wider) */}
               <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-20">
                 <MergeSettings t={t} options={mergeOptions} onChange={setMergeOptions} />
 
